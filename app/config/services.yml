@@ -1,0 +1,36 @@
+# Learn more about services, parameters and containers at
+# http://symfony.com/doc/current/service_container.html
+parameters:
+#    parameter_name: value
+
+services:
+    _defaults:
+        autowire: false
+        autoconfigure: false
+        public: false
+
+    PipelineBundle\:
+        autowire: true
+        autoconfigure: true
+        resource: '../../src/PipelineBundle/*'
+        exclude: '../../{Entity, Repository}'
+
+    app.exception_listener:
+        class: SalesinteractBundle\EventListener\ExceptionListener
+        arguments:
+            - '@router'
+            - '@twig'
+            - '%kernel.environment%'
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception }
+
+    # RABBIT MQ SERVICES
+    app.mail.producer:
+        class: SalesinteractBundle\RabbitMQ\Queue\MailProducer
+        arguments:
+            - '@old_sound_rabbit_mq.send_mail_producer'
+
+    app.mail.consumer:
+        class: SalesinteractBundle\RabbitMQ\Queue\MailConsumer
+        arguments:
+          - '@mailer'

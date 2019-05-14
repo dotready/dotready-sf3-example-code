@@ -1,0 +1,33 @@
+PipelineBundle\Entity\Pipeline:
+    type: entity
+    table: pipeline
+    cache:
+        usage: NONSTRICT_READ_WRITE
+        region: pipeline
+    id:
+        id:
+            type: guid
+            generator: { strategy: UUID }
+            length: 191
+    fields:
+        organisationId:
+            type: string
+            column: organisation_id
+        name:
+            type: string
+            length: 200
+        archived:
+            type: boolean
+        created:
+            type: datetime
+
+    oneToMany:
+        stages:
+          cascade: [ all ]
+          targetEntity: PipelineBundle\Entity\Stage
+          mappedBy: pipeline
+          orderBy: { 'index': 'ASC' }
+
+    lifecycleCallbacks:
+        prePersist: [ lifecyclePreCreateDate, lifecyclePreArchived ]
+        postPersist: [  ]

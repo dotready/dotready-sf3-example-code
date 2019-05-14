@@ -1,0 +1,426 @@
+{% extends "base.html.twig" %}
+{% set active_page = "pipeline_pipelines" %}
+{% block mainContent %}
+
+
+        <div class="row wrapper border-bottom white-bg page-heading">
+            <div class="col-lg-12">
+
+                <h5 class="title">{{ 'nav_pipeline'|trans }}</h5>
+                {% if pipelines|length > 0 %}
+                <div class="pipeline_container pipeline_container_overview select">
+                    <select class="form-control" onchange="SI.Pipeline.deal.pipeline.select(this);">
+                    {% for p in pipelines %}
+                        <option {{ p.id == pipeline.getId ? 'selected' : '' }} value="{{ p.getId }}">{{ p.getName }}</option>
+                    {% endfor %}
+                    </select>
+
+                </div>
+
+                <button type="button" class="btn btn-primary btn-deals" onclick="SI.Pipeline.deal.create();">
+                    <i class="fa fa-plus"></i>
+                    {{ 'btn_deal_add'|trans }}
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        <br>
+
+        <div class="row" style="padding-top: 20px; margin-right: 0;">
+            <div class="col-lg-12 col-md-12" style="overflow: auto;padding-bottom: 100px;padding-right: 120px!important;">
+
+                {% if pipelines|length == 0 %}
+                <div style="width: 100%; padding-top: 200px; font-weight: 600; font-size: 14px;text-align: center;">
+                    {% if currentUser.hasRole('admin') %}
+                        {{ 'label_no_pipelines_admin'|trans({'%link%': path('pipelineSettings')})|raw }}
+                    {% else %}
+                        {{ 'label_no_pipelines'|trans }}
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if pipeline is defined and pipeline is not null %}
+
+                    {% set stageCount = 0 %}
+                    {% for index, stage in pipeline.getStages %}
+                        {% if stage.isArchived == false %}
+                            {% set stageCount = stageCount + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    {% set colWidth = 100 / stageCount %}
+
+                    <table class="pipeline-table " style="">
+                        <thead>
+                            <tr>
+                    {% for index, stage in pipeline.getStages %}
+                        {% if stage.isArchived == false %}
+                                <th style="width: {{ colWidth }}%" class="display-marker" id="display-help12">
+                                    <div class="bar-arrow-bck">
+                                        <div class="bar-arrow">
+                                            <h3>{{ stage.getName }}</h3>
+                                        </div>
+                                    </div>
+                                </th>
+                        {% endif %}
+                    {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            {% set c = 0 %}
+                            {% set yearNow = "now"|date("Y") %}
+
+                            {% for index, stage in pipeline.getStages %}
+                                {% if stage.isArchived == false %}
+                                <td id="stage_{{ stage.getId }}" style="padding: 10px;width: {{ colWidth }}%" class="sortable-list connectList agile-list ui-sortable">
+                                    {% for deal in stage.getDeals %}
+
+                                        {% if (viewType == 'all' or deal.ownerId == currentUser.getId)
+                                            and deal.isArchived == false
+                                            and (deal.getClosedStatus is null or deal.getClosedStatus == '')
+                                            and deal.created.format('Y') == yearNow %}
+
+                                            {% set owner = user_service.getById(deal.ownerId ) %}
+                                            {% set organisation = organisation_service.getById(deal.getOrganisationId) %}
+                                            {% set profile = user_profile_service.findOne({'id': deal.getUserProfileId }) %}
+                                            {% if organisation.isArchived == false and profile.isArchived == false %}
+
+                                                {% set task = task_service.findOne({'userProfileId': profile.getId }, {'createdMs': 'desc'}) %}
+                                    <div class="deal ui-sortable-handle deal" id="{{ deal.getId }}">
+                                        <table style="width: 100%; border: none;">
+                                            <tr>
+                                                <td style="padding: 10px; background: transparent; border: none; text-align: left;">
+                                                    <strong>{{ deal.getName }}</strong>
+                                                </td>
+                                                <td style="padding: 10px; background: transparent; border: none;text-align: right;">
+                                                    {% if  date().timestamp > deal.getExpectedCloseDate.getTimestamp %}
+                                                    <span class="{{ c == 0 and index == 0 ? 'display-marker' : '' }}" id="{{ c == 0 and index == 0 ? 'display-help11' : '' }}">
+                                                        <span class="fa-stack fa">
+                                                            <i aria-hidden="true" title="Expected close date passed!" style="font-size: 22px; color:#e0c92f; " class="statusTooltip fa fa-warning fa-stack-1x"></i>
+                                                        </span></span>
+                                                    {% endif %}
+                                                    {% if task is not null %}
+                                                        {% set tk = 'task_' ~ (task.getLabel == 'visit' ? 'visit' : 'callback') %}
+                                                        <span class="{{ c == 0 and index == 0 ? 'display-marker' : '' }}" id="{{ c == 0 and index == 0 ? 'display-help9' : '' }}">
+                                                            <span class="fa-stack fa text-info {{ 'span_' ~ task.getLabel }}" data-id="">
+                                                                <i class="fa fa-circle fa-stack-2x"></i>
+                                                                <i aria-hidden="true" title="{{ tk|trans }}" class="statusTooltip fa {{ task.getLabel == 'visit' ? 'fa-car' : 'fa-phone' }} fa-stack-1x fa-inverse"></i>
+                                                            </span>
+                                                        </span>
+                                                    {% endif %}
+
+                                                    <span class="edit {{ c == 0 and index == 0  ? 'display-marker' : '' }}" id="{{ c == 0 and index == 0  ? 'display-help10' : '' }}">
+                                                        <a class="text-info btnEditDeal"
+                                                           data-id="{{ deal.getId }}"
+                                                           data-name="{{ deal.getName }}"
+                                                           data-value="{{ deal.getValue }}"
+                                                           data-currency="{{ deal.getCurrency }}"
+                                                           data-stage-id="{{ deal.getStage.getId }}"
+                                                           data-close-date="{{ deal.getExpectedCloseDate.format('Y-m-d') }}"
+                                                           data-pipeline-id="{{ deal.getPipeline.getId }}"
+                                                           data-organisation-id="{{ deal.getOrganisationId }}"
+                                                           data-user-profile-id="{{ deal.getUserProfileId }}">
+                                                            <span class="fa-stack fa">
+                                                              <i class="fa fa-circle fa-stack-2x"></i>
+                                                              <i class="fa fa-pencil fa-stack-1x fa-inverse"></i>
+                                                            </span>
+                                                        </a>
+                                                    </span>
+
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <div class="agile-detail" style="width: 100%">
+                                            <div>
+                                                {% set img = s3Image(profile.getId, 40, 'profile') %}
+                                                {% if 'noicon' in img %}
+                                                    <div style="margin-bottom: 20px">
+                                                        <i style="font-size: 30px;" class="fa fa-user-circle" aria-hidden="true"></i>
+                                                    </div>
+
+                                                {% else %}
+                                                    <img src="{{ img }}" class="img-circle tableImg" height="30" />
+                                                {% endif %}
+
+
+                                            </div>
+                                            <div>
+                                                <a style="text-align: left; width: 100%" href="#" class="float-right btn btn-xs btn-white">
+                                                    <i class="fa fa-user-o"></i>
+                                                    {{ organisation.getName }}
+                                                    {% if profile is not null %}
+                                                        - {{ profile.getFirstname }} {{ profile.getLastname }}
+                                                    {% endif %}
+                                                </a>
+                                                <br>
+                                                <span style="text-align: left; width: 100%" class="float-right btn btn-xs btn-white">
+                                                        <i class="fa fa-clock-o"></i>
+
+                                                    {{ date(deal.getExpectedCloseDate)|localizeddate('medium', 'none', locale) }}
+
+                                                    </span>
+                                                <br>
+                                                <span style="text-align: left; text-transform: uppercase; width: 100%" class="float-right btn btn-xs btn-white">
+                                                        <i class="fa fa-money"></i> {{ deal.getCurrency }} {{ deal.getValue|number_format(2) }}
+                                                    </span>
+                                                <br>
+                                                <span style="text-align: left; width: 100%" class="float-right btn btn-xs btn-white">
+                                                        <i class="fa fa-user"></i>
+                                                    {{ owner.firstname }}
+                                                    {{ owner.lastname }}
+                                                    </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        </div>
+
+
+<br><br>
+
+        <div class="drop_container row animated fadeIn hidden">
+
+
+            <div class="finalize_container">
+                <div class="test lost">
+                    <i class="fa fa-exclamation-circle"></i>
+                    {{ 'label_pipeline_deal_lost'|trans }}
+                    <ul class="sortable-list connectList agile-list ui-sortable" id="deallost"></ul>
+                </div>
+
+                <div class="test won">
+                    <i class="fa fa-trophy"></i>
+                    {{ 'label_pipeline_deal_won'|trans }}
+                    <ul class="sortable-list connectList agile-list ui-sortable" id="dealwon"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal inmodal fade" id="dealModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title" id="header_deal_add">{{ 'header_pipeline_deal_add'|trans }}</h4>
+                        <h4 class="modal-title hidden" id="header_deal_edit">{{ 'header_pipeline_deal_edit'|trans }}</h4>
+                    </div>
+                    <div class="modal-body">
+
+                        <div class="alert alert-danger hidden" id="deal_add_errors">
+
+                        </div>
+
+                        <form id="frmAddDeal">
+                            <input type="hidden" required data-label="lbl_deal_organisation" id="deal_organisation_id" name="deal_organisation_id" value="">
+                            <input type="hidden" id="deal_owner_id" name="deal_owner_id" value="{{ currentUser.getId }}">
+                            <input type="hidden" required data-label="lbl_stage_id" id="deal_stage_id" name="deal_stage_id" value="">
+                            <input type="hidden" required data-label="lbl_close_date" id="deal_close_date" name="deal_close_date" value="{{ "now"|date("Y-m-d") }}">
+
+                            <div class="form-group">
+                                <span class="display-marker" id="display-help1">
+                                    <label for="deal_organisation" id="lbl_deal_organisation" class="">{{ "form_label_companyname"|trans }}</label>
+                                </span>
+                                <input type="text" name="deal_organisation" id="deal_organisation" class="typeahead_2 form-control" placeholder="{{ 'placeholder_start_typing'|trans }}">
+                                <ul class="typeahead dropdown-menu" role="listbox" >
+
+                                </ul>
+                                <div id="deal_typeahead_result_container">
+                                    <ul id="deal_typeahead_result_list"></ul>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <span class="display-marker" id="display-help2">
+                                    <label for="deal_contact_id" id="lbl_deal_contact_id" class="">{{ "form_label_contact"|trans }}</label>
+                                </span>
+                                <select name="deal_contact_id" required id="deal_contact_id" class="form-control">
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <span class="display-marker" id="display-help3">
+                                    <label class="" for="deal_name" id="lbl_deal_name">{{ "form_label_name"|trans }}</label>
+                                </span>
+                                <input type="text" required name="deal_name" id="deal_name" class="form-control">
+                            </div>
+
+                            <div class="form-group">
+                                <span class="display-marker" id="display-help4">
+                                    <label class="" for="deal_value" id="lbl_deal_value">{{ "form_label_value"|trans }}</label>
+                                </span>
+                                <input type="number" required name="deal_value" id="deal_value" class="form-control">
+                            </div>
+
+                            <div class="form-group">
+                                <span class="display-marker" id="display-help5">
+                                    <label class="" for="deal_currency" id="lbl_deal_currency">{{ "form_label_currency"|trans }}</label>
+                                </span>
+                                <select name="deal_currency" id="deal_currency" class="form-control">
+                                    <option value="eur">EUR</option>
+                                    <option value="usd">USD</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <span class="display-marker" id="display-help6">
+                                    <label class="" for="deal_pipeline_id" id="lbl_deal_pipeline_id">{{ "form_label_pipeline"|trans }}</label>
+                                </span>
+                                <select onchange="SI.Pipeline.deal.pipeline.activate(this)" name="deal_pipeline_id" id="deal_pipeline_id" class="form-control">
+                                    {% for p in pipelines %}
+                                        <option {{ p.id == pipeline.getId ? 'selected' : '' }} value="{{ p.getId }}">{{ p.getName }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <span class="display-marker" id="display-help7">
+                                    <label class="" id="lbl_stage_id">{{ "form_label_pipeline_stage"|trans }}</label>
+                                </span>
+                                {% for index, p in pipelines %}
+                                <div data-pipeline-id="{{ p.getId }}" class="stage_select {{ p.getId == pipeline.getId ? '' : 'hidden' }}">
+                                    {% set len = p.getStages|length %}
+                                    {% for stage in p.getStages %}
+                                        {% if stage.isArchived == false %}
+                                    <div
+                                            style="width: {{ 100 / len }}%"
+                                            class="stage statusTooltip"
+                                            onclick="SI.Pipeline.deal.stage.active(this)"
+                                            data-id="{{ stage.getId }}"
+                                            data-pipeline-stage-id="{{ stage.getId }}"
+                                            aria-hidden="true" title="{{ stage.getName }}">
+                                    </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="form-group">
+                                <span class="display-marker" id="display-help8">
+                                    <label class="" id="lbl_close_date">{{ "form_label_close_expected_date"|trans }}</label>
+                                </span>
+                                <div class="input-group date">
+                                    <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                                    <div class="form-control datetimepicker" id="close_date" data-name="date_3" data-iso=""></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger pull-left hidden btnRemoveDeal" id="btnDealRemove">{{ 'btn_deal_remove'|trans }}</button>
+                        <button type="button" class="btn btn-white" data-dismiss="modal">{{ 'form_label_close'|trans }}</button>
+                        <button type="button" class="btn btn-primary" id="btnAddDeal">{{ 'btn_deal_add'|trans }}</button>
+                        <button type="button" data-id="" class="btn btn-primary hidden" id="btnSaveDeal">{{ 'btn_deal_save'|trans }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="modal inmodal fade" id="lostModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="header_deal_add">{{ 'header_pipeline_deal_lost'|trans }}</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="frmLostDeal">
+                        <div class="form-group">
+                            <label for="lost_reason" id="lbl_lost_reason" class="">{{ "form_label_reason_lost"|trans }}</label>
+                            <textarea name="lost_reason" id="lost_reason" class="form-control"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" data-id="" class="btn btn-primary" id="btnSaveLostDeal">{{ 'form_button_save'|trans }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        {% set ids = [] %}
+        {% if pipeline is defined and pipeline is not null %}
+            {% for stage in pipeline.getStages %}
+                {% set ids = ids|merge([stage.getId]) %}
+            {% endfor %}
+        {% endif %}
+
+        {% set list = '#dealwon, #deallost, #stage_' ~ ids|join(', #stage_') %}
+
+{% endblock %}
+
+{% block pageStyle %}
+    {% stylesheets
+    'styles/pipeline/pipeline.css'
+    filter='cssrewrite'
+    filter='?uglifycss'
+    %}
+    <link rel="stylesheet" href="{{ asset_url }}" />
+    {% endstylesheets %}
+
+{% endblock %}
+
+{% block pageScripts %}
+    {% javascripts
+    'vendor/jquery.validate/dist/jquery.validate.min.js'
+    'vendor/bootstrap3-typeahead/bootstrap3-typeahead.min.js'
+    'scripts/help/pipeline.overview.js'
+    'scripts/pipeline/pipeline.js'
+    'scripts/pipeline/overview.js'
+    filter='?uglifyjs'
+    %}
+    <script src="{{ asset_url }}"></script>
+    {% endjavascripts %}
+
+
+    {% set ids = [] %}
+    {% if pipeline is defined and pipeline is not null %}
+        {% for stage in pipeline.getStages %}
+            {% set ids = ids|merge([stage.getId]) %}
+        {% endfor %}
+    {% endif %}
+
+    {% set list = '#dealwon, #deallost, #stage_' ~ ids|join(', #stage_') %}
+
+    <script type="text/javascript">
+
+        list = "{{ list }}";
+
+        $('#btnSaveLostDeal').click(function() {
+
+            $('#lbl_lost_reason').removeClass('error');
+            if (document.getElementById('lost_reason').value.trim() === '') {
+                $('#lbl_lost_reason').addClass('error');
+                return;
+            }
+
+            p = document.getElementById(uiItem.item[0].id);
+            p.parentNode.removeChild(p);
+            $('#lostModal').modal('hide');
+            SI.Pipeline.deal.finalize(uiItem.item[0].id, 'deallost', document.getElementById('lost_reason').value);
+            $('.drop_container').addClass('hidden');
+
+        });
+
+        $(function() {
+            var organisations = {{ organisations|json_encode()|raw }};
+            SI.Pipeline.organisations = organisations;
+            SI.Pipeline.typeahead.init('typeahead_2', organisations );
+        });
+
+
+    </script>
+
+{% endblock %}

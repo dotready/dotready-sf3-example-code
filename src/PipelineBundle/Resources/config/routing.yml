@@ -1,0 +1,53 @@
+pipelineSettings:
+    path:     /pipeline/settings
+    defaults: { _controller: PipelineBundle:Pipeline:settings }
+    condition: "context.getMethod() in ['GET']"
+    options:
+      expose: true
+
+pipelineCreate:
+    path:     /pipeline/add
+    defaults: { _controller: PipelineBundle:Pipeline:create }
+    condition: "context.getMethod() in ['GET']"
+    options:
+      expose: true
+
+pipelineAdd:
+    path:     /pipeline/add
+    defaults: { _controller: PipelineBundle:Pipeline:add }
+    condition: "context.getMethod() in ['POST']"
+    options:
+        expose: true
+
+pipelineEdit:
+    path:     /pipeline/{id}/edit
+    defaults: { _controller: PipelineBundle:Pipeline:edit }
+    condition: "context.getMethod() in ['GET']"
+    options:
+      expose: true
+
+pipelineSave:
+    path:     /pipeline/{id}/edit
+    defaults: { _controller: PipelineBundle:Pipeline:save }
+    condition: "context.getMethod() in ['POST']"
+    options:
+      expose: true
+
+pipelineRemove:
+    path:     /pipeline/{id}/remove
+    defaults: { _controller: PipelineBundle:Pipeline:remove }
+    condition: "context.getMethod() in ['GET']"
+    options:
+      expose: true
+
+pipelineOverview:
+    path:     /pipeline/overview/{id}
+    defaults: { _controller: PipelineBundle:Pipeline:overview , id: ''}
+    condition: "context.getMethod() in ['GET']"
+    options:
+      expose: true
+
+pipelineStats:
+    path:     /pipeline/statistics
+    defaults: { _controller: PipelineBundle:Pipeline:statistics }
+    condition: "context.getMethod() in ['GET']"

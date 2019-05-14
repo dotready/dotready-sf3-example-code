@@ -1,0 +1,55 @@
+PipelineBundle\Entity\Deal:
+    exclusion_policy: ALL
+    properties:
+        id:
+            expose: true
+            type: string
+        organisationId:
+            expose: true
+            type: string
+            serialized_name: organisationId
+        userProfileId:
+            expose: true
+            type: string
+            serialized_name: userProfileId
+        ownerId:
+            expose: true
+            type: string
+            serialized_name: ownerId
+        pipeline:
+            expose: true
+            type: PipelineBundle\Entity\Pipeline
+        stage:
+            expose: true
+            type: PipelineBundle\Entity\Stage
+        name:
+            expose: true
+            type: string
+        value:
+            expose: true
+            type: float
+        currency:
+            expose: true
+            type: string
+        expectedCloseDate:
+            expose: true
+            type: DateTime<'Y-m-d'>
+            serialized_name: expectedCloseDate
+        closedDate:
+            expose: true
+            type: DateTime<'Y-m-d'>
+            serialized_name: closedDate
+        closedReason:
+            expose: true
+            type: string
+            serialized_name: closedReason
+        sortIndex:
+            expose: true
+            type: integer
+            serialized_name: sortIndex
+        archived:
+            expose: true
+            type: boolean
+        created:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>

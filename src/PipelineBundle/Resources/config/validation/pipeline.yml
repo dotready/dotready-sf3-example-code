@@ -1,0 +1,11 @@
+PipelineBundle\Entity\Pipeline:
+    properties:
+        name:
+            - NotBlank: { message: 'pipeline.name.not_blank' }
+            - Length:
+                min: 2
+                max: 200
+                minMessage: 'pipeline.name.length_short'
+                maxMessage: 'pipeline.name.length_long'
+        organisationId:
+            - NotBlank: { message: 'pipeline.organisation.not_blank' }

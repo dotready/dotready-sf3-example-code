@@ -1,0 +1,198 @@
+imports:
+    - { resource: parameters.yml }
+    - { resource: security.yml }
+    - { resource: services.yml }
+    - { resource: "@PipelineBundle/Resources/config/services.yml" }
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# http://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+parameters:
+    locale: en
+
+framework:
+    #esi:             ~
+    translator:
+        fallbacks:
+          - '%fallback_language%'
+        paths:
+          - '%kernel.root_dir%/Resources/translations'
+    secret:          "%secret%"
+    router:
+        resource: "%kernel.root_dir%/config/routing.yml"
+        strict_requirements: ~
+    form:            ~
+    csrf_protection: ~
+    validation:      { enable_annotations: true }
+    templating:
+        engines: ['twig']
+    default_locale:  "%locale%"
+    trusted_hosts:   ~
+    trusted_proxies: ~
+    session:
+        handler_id: session.handler.memcached
+        cookie_lifetime: 86400
+        gc_maxlifetime: 86400
+    fragments:       ~
+    http_method_override: true
+    assets:
+        version: "%release%"
+    cache:
+        default_memcached_provider: "memcached://%session_memcached_host%:%session_memcached_port%"
+        pools:
+            app.cache.organisation:
+                adapter: cache.adapter.memcached
+                public: true
+            app.cache.userprofile:
+                adapter: cache.adapter.memcached
+                public: true
+
+
+# Twig Configuration
+twig:
+    debug:            "%kernel.debug%"
+    strict_variables: "%kernel.debug%"
+    cache: false
+    globals:
+        locale: nl
+        lang: "Dutch"
+        fallback_laguage: '%fallback_language%'
+
+# Uglify JS & CSS
+assetic:
+    filters:
+        cssrewrite: ~
+        uglifyjs:
+            bin: "%kernel.root_dir%/../node_modules/.bin/uglifyjs"
+        uglifycss:
+            bin: "%kernel.root_dir%/../node_modules/.bin/uglifycss"
+
+fos_js_routing:
+    cache_control:
+        # All are optional, defaults shown
+        public: false   # can be true (public) or false (private)
+        maxage: 300    # integer value, e.g. 300
+        smaxage: 300   # integer value, e.g. 300
+        expires: null   # anything that can be fed to "new \DateTime($expires)", e.g. "5 minutes"
+        vary: []        # string or array, e.g. "Cookie" or [ Cookie, Accept ]
+
+fos_http_cache:
+    proxy_client:
+        varnish:
+            http:
+                servers: '%varnish.servers%'
+                base_url: "%varnish.base_url%"
+
+# Doctrine Configuration
+doctrine:
+    dbal:
+        driver:   pdo_mysql
+        host:     "%database_host%"
+        port:     "%database_port%"
+        dbname:   "%database_name%"
+        user:     "%database_user%"
+        password: "%database_password%"
+        charset: utf8mb4
+        default_table_options:
+          charset: utf8mb4
+          collate: utf8mb4_unicode_ci
+
+    orm:
+        default_entity_manager: default
+        auto_generate_proxy_classes: "%kernel.debug%"
+        entity_managers:
+            default:
+                second_level_cache:
+                    region_cache_driver:
+                        type:           memcached
+                    enabled:              true
+                    log_enabled:          true
+                    regions:
+                        pipeline:
+                            cache_driver:  memcached
+                            lifetime:   3600
+
+                connection: default
+                mappings:
+                    Pipeline:
+                        prefix: PipelineBundle\Entity
+                        type:   yml
+                        dir:    '%kernel.root_dir%/../src/PipelineBundle/Resources/config/doctrine'
+                        is_bundle: false
+
+jms_serializer:
+    metadata:
+        directories:
+            PipelineBundle:
+                namespace_prefix: "PipelineBundle"
+                path: "@PipelineBundle/Resources/config/serializer/"
+
+# Swiftmailer Configuration
+swiftmailer:
+    transport: "%mailer_transport%"
+    host:      "%mailer_host%"
+    port:      "%mailer_port%"
+    encryption: "%mailer_encryption%"
+    username:  "%mailer_username%"
+    password:  "%mailer_password%"
+    timeout: 5
+
+# Rabbit MQ
+old_sound_rabbit_mq:
+    connections:
+        default:
+            host: "%rabbit_host%"
+            port: "%rabbit_port%"
+            user: "%rabbit_user%"
+            password: "%rabbit_password%"
+            vhost: '/'
+            lazy: false
+            connection_timeout: 6
+            read_write_timeout: 6
+            keepalive: false
+            heartbeat: 0
+            use_socket: false
+    producers:
+        send_mail:
+            connection: default
+            exchange_options: {name: 'send_mail', type: direct}
+
+        import_csv:
+            connection: default
+            exchange_options: {name: 'import_csv', type: direct}
+
+    consumers:
+        send_mail:
+            connection: default
+            exchange_options: {name: 'send_mail', type: direct}
+            queue_options:    {name: 'send-mail'}
+            callback: app.mail.consumer
+
+        import_csv:
+            connection: default
+            exchange_options: {name: 'import_csv', type: direct}
+            queue_options:    {name: 'import-csv'}
+            callback: import.csv.consumer
+            qos_options: {prefetch_size: 0, prefetch_count: 1, global: false}
+
+monolog:
+    handlers:
+        connectivity:
+            # log all messages (since debug is the lowest level)
+            level:    debug
+            type:     stream
+            path:     '%kernel.logs_dir%/connectivity.log'
+            channels: [connectivity]
+        import:
+            # log all messages (since debug is the lowest level)
+            type:  rotating_file
+            path:  '%kernel.logs_dir%/import/import.log'
+            level: info
+            max_files: 10
+            channels: [import]
+        requestlog:
+            # log all messages (since debug is the lowest level)
+           level:    debug
+           type:     rotating_file
+           path:     '%kernel.logs_dir%/request/user.log'
+           channels: [requestlog]
+           max_files: 10

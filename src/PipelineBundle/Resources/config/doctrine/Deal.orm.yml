@@ -1,0 +1,70 @@
+PipelineBundle\Entity\Deal:
+    type: entity
+    table: pipeline_deal
+    cache:
+        usage: NONSTRICT_READ_WRITE
+        region: pipeline
+    id:
+        id:
+            type: guid
+            generator: { strategy: UUID }
+            length: 191
+    fields:
+        name:
+            type: string
+            length: 200
+        value:
+            type: float
+            scale: 10
+            precision: 2
+        currency:
+            type: string
+        expectedCloseDate:
+            type: datetime
+            column: expected_close_date
+        closedDate:
+            type: datetime
+            column: closed_date
+            nullable: true
+        closedStatus:
+            type: string
+            column: closed_status
+            nullable: true
+        closedReason:
+            type: string
+            column: closed_reason
+            nullable: true
+        organisationId:
+            type: string
+            column: organisation_id
+        userProfileId:
+            type: string
+            column: user_profile_id
+        ownerId:
+            type: string
+            column: owner_id
+        sortIndex:
+            type: integer
+            column: sort_index
+        archived:
+            type: boolean
+        created:
+            type: datetime
+
+    manyToOne:
+
+        pipeline:
+            targetEntity: PipelineBundle\Entity\Pipeline
+            joinColumn:
+                name: pipeline_id
+                referencedColumnName: id
+
+        stage:
+            targetEntity: PipelineBundle\Entity\Stage
+            joinColumn:
+                name: stage_id
+                referencedColumnName: id
+
+    lifecycleCallbacks:
+        prePersist: [ lifecyclePreCreateDate, lifecyclePreArchived ]
+        postPersist: [  ]

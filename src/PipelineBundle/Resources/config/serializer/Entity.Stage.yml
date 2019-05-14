@@ -1,0 +1,25 @@
+PipelineBundle\Entity\Stage:
+    exclusion_policy: ALL
+    properties:
+        id:
+            expose: true
+            type: string
+        pipelineId:
+            expose: true
+            type: string
+            serialized_name: pipelineId
+        name:
+            expose: true
+            type: string
+        probability:
+            expose: true
+            type: integer
+        index:
+            expose: true
+            type: integer
+        archived:
+            expose: true
+            type: boolean
+        created:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>

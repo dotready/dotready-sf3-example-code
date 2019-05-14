@@ -1,0 +1,51 @@
+PipelineBundle\Entity\Stage:
+    type: entity
+    table: pipeline_stage
+    cache:
+        usage: NONSTRICT_READ_WRITE
+        region: pipeline
+    id:
+        id:
+            type: guid
+            generator: { strategy: UUID }
+            length: 191
+    fields:
+        name:
+            type: string
+            length: 200
+        probability:
+            type: integer
+        index:
+            type: integer
+            column: '`index`'
+        archived:
+            type: boolean
+        created:
+            type: datetime
+
+    manyToOne:
+        pipeline:
+           targetEntity: PipelineBundle\Entity\Pipeline
+           inversedBy: stages
+           joinColumn:
+               name: pipeline_id
+               referencedColumnName: id
+
+    manyToMany:
+        deals:
+            fetch: EXTRA_LAZY
+            orderBy: { 'sortIndex': 'ASC' }
+            targetEntity: PipelineBundle\Entity\Deal
+            joinTable:
+                name: pipeline_stage_deals
+                joinColumns:
+                    stage_id:
+                        referencedColumnName: id
+                inverseJoinColumns:
+                    deal_id:
+                        referencedColumnName: id
+                        unique: true
+
+    lifecycleCallbacks:
+        prePersist: [ lifecyclePreCreateDate, lifecyclePreArchived ]
+        postPersist: [  ]

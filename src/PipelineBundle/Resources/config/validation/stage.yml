@@ -1,0 +1,13 @@
+PipelineBundle\Entity\Stage:
+    properties:
+        name:
+            - NotBlank: { message: 'pipeline.stage.name.not_blank' }
+            - Length:
+                min: 1
+                max: 200
+                minMessage: 'pipeline.stage.name.too_short'
+                maxMessage: 'pipeline.stage.name.too_long'
+        index:
+            - NotBlank: { message: 'pipeline.stage.index.not_blank' }
+        pipeline:
+            - NotBlank: { message: 'pipeline.stage.pipeline.not_blank' }

@@ -1,0 +1,25 @@
+PipelineBundle\Entity\Deal:
+    properties:
+        name:
+            - NotBlank: { message: 'pipeline.deal.name.not_blank' }
+            - Length:
+                min: 4
+                max: 200
+                minMessage: 'pipeline.deal.name.length_short'
+                maxMessage: 'pipeline.deal.name.length_long'
+        organisationId:
+            - NotBlank: { message: 'pipeline.deal.organisation.not_blank' }
+        userProfileId:
+            - NotBlank: { message: 'pipeline.deal.user_profile.not_blank' }
+        ownerId:
+            - NotBlank: { message: 'pipeline.deal.owner.not_blank' }
+        pipeline:
+            - NotBlank: { message: 'pipeline.deal.pipeline.not_blank' }
+        stage:
+            - NotBlank: { message: 'pipeline.deal.stage.not_blank' }
+        value:
+            - NotBlank: { message: 'pipeline.deal.value.not_blank' }
+        currency:
+            - NotBlank: { message: 'pipeline.deal.currency.not_blank' }
+        expectedCloseDate:
+            - NotBlank: { message: 'pipeline.deal.expectedclosedate.not_blank' }

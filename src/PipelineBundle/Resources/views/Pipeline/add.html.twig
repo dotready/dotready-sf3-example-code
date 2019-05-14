@@ -1,0 +1,122 @@
+{% extends "base.html.twig" %}
+{% set active_page = "pipeline_settings" %}
+
+{% block mainContent %}
+    <div class="wrapper-content animate-panel">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{{ "header_pipeline_add"|trans }}</h5>
+                        <div class="ibox-tools">
+
+                        </div>
+                    </div>
+                    <div class="ibox-content pipeline_container">
+
+                        <form action="" method="post" role="form" id="addPipelineForm">
+                            <input type="hidden" name="organisationId" value="{{ organisation.getId }}">
+
+                            <div class="form-group">
+                                <label class="">{{ "form_label_pipeline_name"|trans }}</label>
+                                <input type="text" name="name" class="form-control">
+                            </div>
+
+                            <div class="form-group text-right">
+                                <div class="col-md-12">
+                                    <button class="btn btn-default" type="button" id="btnCancel">{{ "form_button_cancel"|trans }}</button>
+                                    <button class="btn btn-primary" type="submit" id="btnSave">{{ "form_button_save"|trans }}</button>
+                                </div>
+                            </div>
+
+                            <div style="clear:both">&nbsp;</div>
+                        </form>
+
+                        <div class="modal inmodal fade" id="stageModal" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">
+                                            <span aria-hidden="true">×</span>
+                                            <span class="sr-only">{{ 'form_label_close'|trans }}</span>
+                                        </button>
+                                        <h4 class="modal-title">{{ 'header_pipeline_stage_add'|trans }}</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label class="">{{ "form_label_stage_name"|trans }}</label>
+                                            <input type="text" name="stage_name" id="stage_name" class="form-control">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="">{{ "form_label_stage_probability"|trans }}</label>
+                                            <div>
+                                                <div class="input-group m-b">
+                                                    <input type="number" name="stage_probability" id="stage_probability" class="form-control" min="0" max="100">
+                                                    <span class="input-group-addon">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-white" data-dismiss="modal">{{ 'form_label_close'|trans }}</button>
+                                        <button type="button" class="btn btn-primary" id="btnSaveStage">{{ 'form_button_save'|trans }}</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block pageStyle %}
+    {% stylesheets
+    'styles/pipeline/pipeline.css'
+    filter='cssrewrite'
+    filter='?uglifycss'
+    %}
+    <link rel="stylesheet" href="{{ asset_url }}" />
+    {% endstylesheets %}
+{% endblock %}
+
+{% block pageScripts %}
+    {% javascripts
+    'scripts/pipeline/pipeline.js'
+    filter='?uglifyjs'
+    %}
+    <script src="{{ asset_url }}"></script>
+    {% endjavascripts %}
+    <script>
+
+
+        $(document).ready(function() {
+
+            $('#btnCancel').click(function() {
+                document.location = Routing.generate('pipelineSettings');
+            });
+
+            $('#btnAddStage').click(function() {
+                $('#stageModal').modal('show');
+            });
+
+            $('#btnSaveStage').click(function() {
+                SI.Pipeline.stage.save();
+                $('#stageModal').modal('hide');
+            });
+
+            $("#stages").sortable({
+                connectWith: ".connectList",
+                update: function( event, ui ) {
+                    SI.Pipeline.rearrange();
+                }
+            }).disableSelection();
+
+        });
+
+    </script>
+{% endblock %}

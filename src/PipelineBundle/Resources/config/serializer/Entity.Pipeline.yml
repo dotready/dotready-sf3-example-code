@@ -1,0 +1,22 @@
+PipelineBundle\Entity\Pipeline:
+    exclusion_policy: ALL
+    properties:
+        id:
+            expose: true
+            type: string
+        organisationId:
+            expose: true
+            type: string
+            serialized_name: organisationId
+        name:
+            expose: true
+            type: string
+        stages:
+              expose: true
+              type: ArrayCollection<PipelineBundle\Entity\Stage>
+        archived:
+            expose: true
+            type: boolean
+        created:
+            expose: true
+            type: DateTime<'Y-m-d H:i:s'>

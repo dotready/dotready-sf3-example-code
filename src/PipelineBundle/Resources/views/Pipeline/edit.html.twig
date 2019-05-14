@@ -1,0 +1,191 @@
+{% extends "base.html.twig" %}
+{% set active_page = "pipeline_settings" %}
+
+{% block mainContent %}
+    <div class="wrapper-content animate-panel">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{{ "header_pipeline_edit"|trans }}</h5>
+                        <div class="ibox-tools">
+
+                        </div>
+                    </div>
+                    <div class="ibox-content pipeline_container">
+
+                        <form action="" method="post" role="form" id="addPipelineForm">
+                            <input type="hidden" name="pipelineId" id="pipelineId" value="{{ pipeline.getId }}">
+                            <input type="hidden" name="organisationId" value="{{ organisation.getId }}">
+                            <input type="hidden" name="id" value="{{ pipeline.getId }}">
+                            <input type="hidden" name="archived" value="{{ pipeline.isArchived }}">
+                            <input type="hidden" name="created" value="{{ pipeline.getCreated.format('Y-m-d H:i:s') }}">
+
+                            <div class="form-group">
+                                <!--<label class="">{{ "form_label_pipeline_name"|trans }}</label>-->
+                                <h2 id="pipelineNameText" class=" pull-left" style="margin-right: 30px;">{{ pipeline.getName }}</h2>
+
+                                    <a class="btn btn-primary pull-left" id="btnEditPipelineName">{{ 'form_button_edit'|trans }}</a>
+                                <div style="display:inline-block" class="display-marker" id="display-help1">
+                                </div>
+                                <input type="text" name="pipelineNameInput" value="{{ pipeline.getName }}" id="pipelineNameInput" class="form-control hidden pull-left" style="margin: 0px 20px 10px 0px; width: 400px;">
+                                <a class="btn btn-primary pull-left hidden" id="btnSavePipelineName">{{ 'form_button_save'|trans }}</a>
+                            </div>
+
+                            <hr style="clear: both">
+
+                            <div class="form-group" id="pipeline-stages">
+                                <h2 class="pull-left" style="margin-right: 30px;">{{ "form_label_pipeline_stages"|trans }}</h2>
+
+                                <span class="display-marker" id="display-help2">
+                                    <button type="button" id="btnAddStage" class="btn btn-primary">
+                                        <i class="fa fa-plus"></i>&nbsp;{{ "form_button_new_stage"|trans }}
+                                    </button>
+                                </span>
+
+                                <hr style="clear: both">
+
+                                <div class="display-marker" id="display-help3" style="overflow:hidden;">
+                                    <ul class="sortable-list connectList agile-list ui-sortable" id="stages">
+                                        <li class="ui-sortable-handle" id="dummy">
+                                            <input type="hidden" name="" class="stage[name]">
+                                            <input type="hidden" name="" class="stage[index]">
+                                            <input type="hidden" name="" class="stage[probability]">
+                                            <input type="hidden" name="" class="stage[id]">
+                                            <input type="hidden" name="" class="stage[pipelineId]">
+                                            <input type="hidden" name="" class="stage[archived]">
+                                            <input type="hidden" name="" class="stage[created]">
+                                            <table>
+                                                <tr>
+                                                    <td class="stagename">
+                                                        <span class="name"></span>
+                                                        <div class="hover editContainer hidden">
+                                                            <span class="zoom">
+                                                                <a href="#" class="editStage" data-id="">
+                                                                    <i class="fa fa-edit editFile"></i>
+                                                                </a>
+
+                                                                <a href="#" class="removeStage" data-id="">
+                                                                    <i class="fa fa-trash delFile"></i>
+                                                                </a>
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td><div class="arrow-right"></div></td>
+                                                </tr>
+                                            </table>
+                                        </li>
+                                        {% for index, stage in pipeline.stages %}
+                                            {% if stage.isArchived == false %}
+                                        <li class="ui-sortable-handle" id="stage_{{ stage.getId }}">
+                                            <input type="hidden" value="{{ stage.getId }}" name="stages[{{ index }}][id]" class="stage[id]">
+                                            <input type="hidden" value="{{ stage.getName }}" name="stages[{{ index }}][name]" class="stage[name]">
+                                            <input type="hidden" value="{{ stage.getIndex }}" name="stages[{{ index }}][index]" class="stage[index]">
+                                            <input type="hidden" value="{{ stage.getPipeline.getId }}" name="stages[{{ index }}][pipelineId]" class="stage[pipelineId]">
+                                            <input type="hidden" value="{{ stage.getProbability }}" name="stages[{{ index }}][probability]" class="stage[probability]">
+                                            <input type="hidden" value="{{ stage.isArchived }}" name="stages[{{ index }}][archived]" class="stage[archived]">
+                                            <input type="hidden" value="{{ stage.getCreated.format('Y-m-d H:i:s') }}" name="stages[{{ index }}][created]" class="stage[created]">
+                                            <table>
+                                                <tr>
+                                                    <td class="stagename">
+                                                        <span class="name">{{ stage.getName }}</span>
+                                                        <div class="hover editContainer hidden">
+                                                            <span class="zoom">
+                                                                <a href="#" class="editStage" data-id="{{ stage.getId }}">
+                                                                    <i class="fa fa-edit editFile"></i>
+                                                                </a>
+
+                                                                <a href="#" class="removeStage" data-id="{{ stage.getId }}">
+                                                                    <i class="fa fa-trash delFile"></i>
+                                                                </a>
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td><div class="arrow-right"></div></td>
+                                                </tr>
+                                            </table>
+                                        </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="form-group text-left">
+                                <div class="col-md-12">
+                                    <button class="btn btn-primary" type="button" id="btnCancel">{{ "form_button_back"|trans }}</button>
+                                </div>
+                            </div>
+
+                            <div style="clear:both">&nbsp;</div>
+
+                        </form>
+
+                        <div class="modal inmodal fade" id="stageModal" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+
+
+
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                                        <h4 class="modal-title">{{ 'header_pipeline_stage_add'|trans }}</h4>
+                                    </div>
+                                    <div class="modal-body">
+
+                                        <div id="stage_error_container" class="alert alert-danger hidden">
+
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="">{{ "form_label_stage_name"|trans }}</label>
+                                            <input type="text" name="stage_name" id="stage_name" class="form-control">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="">{{ "form_label_stage_probability"|trans }}</label>
+                                            <div>
+                                                <div class="input-group m-b">
+                                                    <input type="number" name="stage_probability" id="stage_probability" min="0" max="100" class="form-control">
+                                                    <span class="input-group-addon">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-white" data-dismiss="modal">{{ 'form_button_cancel'|trans }}</button>
+                                        <button type="button" class="btn btn-primary" id="btnSaveStage">{{ 'form_button_save'|trans }}</button>
+                                        <button type="button" class="btn btn-primary hidden" data-id="" id="btnUpdateStage">{{ 'form_button_save'|trans }}</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block pageStyle %}
+    {% stylesheets
+    'styles/pipeline/pipeline.css'
+    filter='cssrewrite'
+    filter='?uglifycss'
+    %}
+    <link rel="stylesheet" href="{{ asset_url }}" />
+    {% endstylesheets %}
+
+{% endblock %}
+
+{% block pageScripts %}
+    {% javascripts
+    'scripts/pipeline/pipeline.js'
+    'scripts/help/pipeline.edit.js'
+    filter='?uglifyjs'
+    %}
+    <script src="{{ asset_url }}"></script>
+    {% endjavascripts %}
+{% endblock %}
